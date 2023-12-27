@@ -1,5 +1,5 @@
 <?php
 
-it('should return true', function () {
-    expect(true)->toBe(true);
-});
+use function Pest\Laravel\getJson;
+
+it('should return status code 200', fn () => getJson('/')->assertOk());
