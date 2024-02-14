@@ -85,3 +85,22 @@ test('should return users with total_per_page', function () {
     expect($response['meta']['total'])->toBe(17);
     expect($response['meta']['per_page'])->toBe(4);
 });
+
+test('should return users with filter', function () {
+    User::factory()->count(10)->create();
+    User::factory()->count(10)->create(['name' => 'custom_user_name']);
+    $response = getJson(
+        route('users.index') . '?filter=custom_user_name',
+        [
+            'Authorization' => 'Bearer ' . $this->token
+        ]
+    )->assertJsonStructure([
+        'data' => [
+            '*' => ['id', 'name', 'email','permissions' => []]
+        ],
+        'meta' => ['total', 'current_page', 'from', 'last_page', 'links' => [], 'path', 'per_page', 'to']
+    ])->assertOk();
+
+    expect(count($response['data']))->toBe(10);
+    expect($response['meta']['total'])->toBe(10);
+});
