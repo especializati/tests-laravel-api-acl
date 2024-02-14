@@ -8,15 +8,15 @@ use function Pest\Laravel\withoutMiddleware;
 
 beforeEach(function () {
     withoutMiddleware([ACLMiddleware::class]);
+    $this->user = User::factory()->create();
+    $this->token = $this->user->createToken('test_e2e')->plainTextToken;
 });
 
 test('should return 200', function () {
-    $user = User::factory()->create();
-    $token = $user->createToken('test_e2e')->plainTextToken;
     getJson(
         route('users.index'),
         [
-            'Authorization' => 'Bearer ' . $token
+            'Authorization' => 'Bearer ' . $this->token
         ]
     )->assertJsonStructure([
         'data' => [
@@ -26,4 +26,25 @@ test('should return 200', function () {
             ]
         ]
     ])->assertOk();
+});
+
+test('should return 200 - with many users', function () {
+    User::factory()->count(20)->create();
+    $response = getJson(
+        route('users.index'),
+        [
+            'Authorization' => 'Bearer ' . $this->token
+        ]
+    )->assertJsonStructure([
+        'data' => [
+            '*' => [
+                'id', 'name', 'email',
+                'permissions' => []
+            ]
+        ],
+        'meta' => ['total', 'current_page', 'from', 'last_page', 'links' => [], 'path', 'per_page', 'to']
+    ])->assertOk();
+
+    expect(count($response['data']))->toBe(15);
+    expect($response['meta']['total'])->toBe(21);
 });
