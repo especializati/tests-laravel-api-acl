@@ -66,3 +66,22 @@ test('should return users page 2', function () {
     expect(count($response['data']))->toBe(8);
     expect($response['meta']['total'])->toBe(23);
 });
+
+test('should return users with total_per_page', function () {
+    User::factory()->count(16)->create();
+    $response = getJson(
+        route('users.index') . '?total_per_page=4',
+        [
+            'Authorization' => 'Bearer ' . $this->token
+        ]
+    )->assertJsonStructure([
+        'data' => [
+            '*' => ['id', 'name', 'email','permissions' => []]
+        ],
+        'meta' => ['total', 'current_page', 'from', 'last_page', 'links' => [], 'path', 'per_page', 'to']
+    ])->assertOk();
+
+    expect(count($response['data']))->toBe(4);
+    expect($response['meta']['total'])->toBe(17);
+    expect($response['meta']['per_page'])->toBe(4);
+});
