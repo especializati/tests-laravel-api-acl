@@ -3,7 +3,9 @@
 use App\Http\Middleware\ACLMiddleware;
 use App\Models\User;
 
+use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\getJson;
+use function Pest\Laravel\postJson;
 use function Pest\Laravel\withoutMiddleware;
 
 beforeEach(function () {
@@ -103,4 +105,20 @@ test('should return users with filter', function () {
 
     expect(count($response['data']))->toBe(10);
     expect($response['meta']['total'])->toBe(10);
+});
+
+test('should create new user', function () {
+    $response = postJson(route('users.store'), [
+        'name' => 'John Doe',
+        'email' => 'john@example.com',
+        'password' => 'password',
+    ], [
+        'Authorization' => 'Bearer ' . $this->token
+    ])->assertCreated();
+
+    assertDatabaseHas('users', [
+        'id' => $response['data']['id'],
+        'name' => 'John Doe',
+        'email' => 'john@example.com',
+    ]);
 });
