@@ -5,6 +5,9 @@ use App\Http\Middleware\ACLMiddleware;
 use App\Models\User;
 
 use function Pest\Laravel\assertDatabaseHas;
+use function Pest\Laravel\assertDatabaseMissing;
+use function Pest\Laravel\assertSoftDeleted;
+use function Pest\Laravel\deleteJson;
 use function Pest\Laravel\getJson;
 use function Pest\Laravel\postJson;
 use function Pest\Laravel\putJson;
@@ -168,9 +171,9 @@ test('should return user', function () {
     $response = getJson(route('users.show', $this->user->id), [
         'Authorization' => 'Bearer ' . $this->token
     ])->assertOk()
-    ->assertJsonStructure([
-        'data' => ['id', 'name', 'email', 'permissions' => []]
-    ]);
+        ->assertJsonStructure([
+            'data' => ['id', 'name', 'email', 'permissions' => []]
+        ]);
     // expect($response['data']['name'])->toBe($this->user->name);
     // expect($response['data']['email'])->toBe($this->user->email);
 });
@@ -198,6 +201,22 @@ test('should return 404 when not exists user', function () {
     putJson(route('users.update', 'fake_id'), [
         'name' => 'John Doe Updated',
     ], [
+        'Authorization' => 'Bearer ' . $this->token
+    ])->assertNotFound();
+});
+
+test('should delete user', function () {
+    deleteJson(route('users.destroy', $this->user->id), [], [
+        'Authorization' => 'Bearer ' . $this->token
+    ])->assertNoContent();
+
+    assertDatabaseMissing('users', [
+        'id' => $this->user->id
+    ]);
+});
+
+test('should return 404 when not exists user - delete', function () {
+    deleteJson(route('users.destroy', 'fake_id'), [], [
         'Authorization' => 'Bearer ' . $this->token
     ])->assertNotFound();
 });
