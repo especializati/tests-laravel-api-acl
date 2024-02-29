@@ -4,7 +4,10 @@ use App\Http\Middleware\ACLMiddleware;
 use App\Models\Permission;
 use App\Models\User;
 
+use function Pest\Laravel\assertDatabaseCount;
+use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\getJson;
+use function Pest\Laravel\postJson;
 use function Pest\Laravel\withoutMiddleware;
 
 beforeEach(function () {
@@ -34,4 +37,15 @@ test('should return all permissions of user - with permissions', function () {
             '*' => ['id', 'name', 'description']
         ]
     ])->assertJsonCount(10, 'data');
+});
+
+test('should sync permissions of user', function () {
+    assertDatabaseCount('permissions', 0);
+    $arrayPermissions = Permission::factory()->count(10)->create()->pluck('id')->toArray();
+    postJson(route('users.permissions.sync', $this->user->id), [
+        'permissions' => $arrayPermissions
+    ], [
+        'Authorization' => 'Bearer ' . $this->token
+    ])->assertOk();
+    assertDatabaseCount('permissions', 10);
 });
