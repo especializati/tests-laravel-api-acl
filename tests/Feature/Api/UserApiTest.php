@@ -1,11 +1,13 @@
 <?php
 
+use Illuminate\Support\Str;
 use App\Http\Middleware\ACLMiddleware;
 use App\Models\User;
 
 use function Pest\Laravel\assertDatabaseHas;
 use function Pest\Laravel\getJson;
 use function Pest\Laravel\postJson;
+use function Pest\Laravel\putJson;
 use function Pest\Laravel\withoutMiddleware;
 
 beforeEach(function () {
@@ -60,7 +62,7 @@ test('should return users page 2', function () {
         ]
     )->assertJsonStructure([
         'data' => [
-            '*' => ['id', 'name', 'email','permissions' => []]
+            '*' => ['id', 'name', 'email', 'permissions' => []]
         ],
         'meta' => ['total', 'current_page', 'from', 'last_page', 'links' => [], 'path', 'per_page', 'to']
     ])->assertOk();
@@ -78,7 +80,7 @@ test('should return users with total_per_page', function () {
         ]
     )->assertJsonStructure([
         'data' => [
-            '*' => ['id', 'name', 'email','permissions' => []]
+            '*' => ['id', 'name', 'email', 'permissions' => []]
         ],
         'meta' => ['total', 'current_page', 'from', 'last_page', 'links' => [], 'path', 'per_page', 'to']
     ])->assertOk();
@@ -98,7 +100,7 @@ test('should return users with filter', function () {
         ]
     )->assertJsonStructure([
         'data' => [
-            '*' => ['id', 'name', 'email','permissions' => []]
+            '*' => ['id', 'name', 'email', 'permissions' => []]
         ],
         'meta' => ['total', 'current_page', 'from', 'last_page', 'links' => [], 'path', 'per_page', 'to']
     ])->assertOk();
@@ -121,4 +123,43 @@ test('should create new user', function () {
         'name' => 'John Doe',
         'email' => 'john@example.com',
     ]);
+});
+
+describe('validations', function () {
+    test('should validate create new user', function () {
+        postJson(route('users.store'), [], [
+            'Authorization' => 'Bearer ' . $this->token
+        ])->assertStatus(422)->assertJsonValidationErrors([
+            'name' => trans('validation.required', ['attribute' => 'name']),
+            'email' => trans('validation.required', ['attribute' => 'email']),
+            'password' => trans('validation.required', ['attribute' => 'password']),
+        ]);
+    });
+    test('should validate update user', function () {
+        putJson(route('users.update', $this->user->id), [], [
+            'Authorization' => 'Bearer ' . $this->token
+        ])->assertStatus(422)->assertJsonValidationErrors([
+            'name' => trans('validation.required', ['attribute' => 'name'])
+        ]);
+    });
+    test('should validate update user - with password less 6 characters', function () {
+        putJson(route('users.update', $this->user->id), [
+            'name' => 'John Doe',
+            'password' => '123',
+        ], [
+            'Authorization' => 'Bearer ' . $this->token
+        ])->assertStatus(422)->assertJsonValidationErrors([
+            'password' => trans('validation.min.string', ['attribute' => 'password', 'min' => 6])
+        ]);
+    });
+    test('should validate update user - The password field must not be greater than 20 characters', function () {
+        putJson(route('users.update', $this->user->id), [
+            'name' => 'John Doe',
+            'password' => Str::random(50),
+        ], [
+            'Authorization' => 'Bearer ' . $this->token
+        ])->assertStatus(422)->assertJsonValidationErrors([
+            'password' => trans('validation.max.string', ['attribute' => 'password', 'max' => 20])
+        ]);
+    });
 });
