@@ -11,7 +11,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class UserRepository
 {
     public function __construct(protected User $user)
-    {   
+    {
     }
 
     public function getPaginate(int $totalPerPage = 15, int $page = 1, string $filter = ''): LengthAwarePaginator
@@ -32,9 +32,9 @@ class UserRepository
         return $this->user->create($data);
     }
 
-    public function findById(string $id): ?User
+    public function findById(string $id, array $relations = []): ?User
     {
-        return $this->user->find($id);
+        return $this->user->with($relations)->find($id);
     }
 
     public function findByEmail(string $email): ?User

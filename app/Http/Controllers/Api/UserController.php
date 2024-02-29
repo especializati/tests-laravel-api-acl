@@ -15,7 +15,7 @@ use Illuminate\Http\Response;
 class UserController extends Controller
 {
     public function __construct(private UserRepository $userRepository)
-    { 
+    {
     }
 
     /**
@@ -45,7 +45,7 @@ class UserController extends Controller
      */
     public function show(string $id)
     {
-        if (!$user = $this->userRepository->findById($id)) {
+        if (!$user = $this->userRepository->findById($id, ['permissions'])) {
             return response()->json(['message' => 'user not found'], Response::HTTP_NOT_FOUND);
         }
         return new UserResource($user);
