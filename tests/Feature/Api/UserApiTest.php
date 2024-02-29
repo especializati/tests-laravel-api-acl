@@ -180,3 +180,24 @@ test('should return 404 when user not found', function () {
         'Authorization' => 'Bearer ' . $this->token
     ])->assertNotFound();
 });
+
+test('should update user', function () {
+    putJson(route('users.update', $this->user->id), [
+        'name' => 'John Doe Updated',
+    ], [
+        'Authorization' => 'Bearer ' . $this->token
+    ])->assertOk();
+
+    assertDatabaseHas('users', [
+        'id' => $this->user->id,
+        'name' => 'John Doe Updated',
+    ]);
+});
+
+test('should return 404 when not exists user', function () {
+    putJson(route('users.update', 'fake_id'), [
+        'name' => 'John Doe Updated',
+    ], [
+        'Authorization' => 'Bearer ' . $this->token
+    ])->assertNotFound();
+});
