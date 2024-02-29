@@ -163,3 +163,20 @@ describe('validations', function () {
         ]);
     });
 });
+
+test('should return user', function () {
+    $response = getJson(route('users.show', $this->user->id), [
+        'Authorization' => 'Bearer ' . $this->token
+    ])->assertOk()
+    ->assertJsonStructure([
+        'data' => ['id', 'name', 'email', 'permissions' => []]
+    ]);
+    // expect($response['data']['name'])->toBe($this->user->name);
+    // expect($response['data']['email'])->toBe($this->user->email);
+});
+
+test('should return 404 when user not found', function () {
+    getJson(route('users.show', 'fake_id'), [
+        'Authorization' => 'Bearer ' . $this->token
+    ])->assertNotFound();
+});
