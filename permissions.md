@@ -18,3 +18,18 @@ $user->permissions()->attach([
 ]);
 $user->permissions()->get()->pluck('name');
 ```
+```sh
+$permissionsList = \App\Models\Permission::factory()->create(['name' => 'permissions.index']);
+$permissionsStore = \A-pp\Models\Permission::factory()->create(['name' => 'permissions.store']);
+$permissionsUpdate = \App\Models\Permission::factory()->create(['name' => 'permissions.update']);
+$permissionsDestroy =+ \App\Models\Permission::factory()->create(['name' => 'permissions.destroy']);
+
+$user = User::where('email', 'carlos@especializati.com.br')->first();
+$user->permissions()->attach([
+    $permissionsList->id,
+    $permissionsStore->id,
+    $permissionsUpdate->id,
+    $permissionsDestroy->id
+]);
+$user->permissions()->get()->pluck('name');
+```
