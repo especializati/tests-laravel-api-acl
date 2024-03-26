@@ -33,3 +33,14 @@ $user->permissions()->attach([
 ]);
 $user->permissions()->get()->pluck('name');
 ```
+```sh
+$listPermissionsOfUser = \App\Models\Permission::factory()->create(['name' => 'users.permissions']);
+$addPermissionOfUser = \App\Models\Permission::factory()->create(['name' => 'users.permissions.sync']);
+
+$user = User::where('email', 'carlos@especializati.com.br')->first();
+$user->permissions()->attach([
+    $listPermissionsOfUser->id,
+    $addPermissionOfUser->id,
+]);
+$user->permissions()->get()->pluck('name');
+```
